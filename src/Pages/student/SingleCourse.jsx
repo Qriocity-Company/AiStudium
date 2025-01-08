@@ -22,7 +22,7 @@ const SingleCourse = () => {
   const getSingleCourse = async () => {
     try {
       const { data } = await axios.post(
-        "http://localhost:8000/course/singleCourse",
+        "https://aistudiumb.onrender.com/course/singleCourse",
         {
           courseId: id,
         }
@@ -42,7 +42,7 @@ const SingleCourse = () => {
 
   const getUserData = async () => {
     try {
-      const { data } = await axios.post("http://localhost:8000/user/get-user", {
+      const { data } = await axios.post("https://aistudiumb.onrender.com/user/get-user", {
         id: userId,
       });
       const enrolledCourses = data?.user?.enrolledCourses || [];
@@ -95,7 +95,7 @@ const SingleCourse = () => {
     // Calculate and send completion data to backend
     const completionPercentage = calculateCompletionPercentage();
     try {
-      await axios.post("http://localhost:8000/user/updateStatus", {
+      await axios.post("https://aistudiumb.onrender.com/user/updateStatus", {
         userId: userId,
         courseId: courseData._id,
         status: completionPercentage,

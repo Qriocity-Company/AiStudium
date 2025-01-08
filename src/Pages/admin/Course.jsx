@@ -103,7 +103,7 @@ const Course = () => {
     };
 
     try {
-      await axios.post("http://localhost:8000/course/createCourse", courseData);
+      await axios.post("https://aistudiumb.onrender.com/course/createCourse", courseData);
       alert("Course added successfully!");
       toggleModal();
       fetchCourses();
@@ -116,7 +116,7 @@ const Course = () => {
   const fetchCourses = async () => {
     try {
       const { data } = await axios.get(
-        "http://localhost:8000/course/allCourses"
+        "https://aistudiumb.onrender.com/course/allCourses"
       );
       setCourses(data.courses);
     } catch (error) {
@@ -131,7 +131,7 @@ const Course = () => {
   // Delete Course
   const deleteCourse = async (courseId) => {
     try {
-      await axios.post(`http://localhost:8000/course/delete`, {
+      await axios.post(`https://aistudiumb.onrender.com/course/delete`, {
         courseId,
       });
       alert("Course deleted successfully!");

@@ -14,7 +14,7 @@ const Profile = () => {
 
   const getUserData = async () => {
     try {
-      const { data } = await axios.post("http://localhost:8000/user/get-user", {
+      const { data } = await axios.post("https://aistudiumb.onrender.com/user/get-user", {
         id: userId,
       });
       console.log("User Data:", data); // Log the data to verify the structure
@@ -31,7 +31,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/results/user/${userId}`);
+        const response = await axios.get(`https://aistudiumb.onrender.com/api/results/user/${userId}`);
         setResults(response.data);
         setLoading(false);
       } catch (error) {

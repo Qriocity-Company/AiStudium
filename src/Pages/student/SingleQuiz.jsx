@@ -14,7 +14,7 @@ const SingleQuiz = () => {
   const getSingleQuiz = async () => {
     try {
       const { data } = await axios.post(
-        "http://localhost:8000/course/singleQuiz",
+        "https://aistudiumb.onrender.com/course/singleQuiz",
         {
           quizId,
         }

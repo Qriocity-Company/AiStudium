@@ -9,7 +9,7 @@ const Students = () => {
   const getUsers = async () => {
     try {
       const { data } = await axios.get(
-        "http://localhost:8000/user/getAllstudents"
+        "https://aistudiumb.onrender.com/user/getAllstudents"
       );
       setAllUsers(data.user);
     } catch (error) {
