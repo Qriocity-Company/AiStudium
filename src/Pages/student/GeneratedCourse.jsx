@@ -3,9 +3,10 @@ import { useState } from 'react';
 import React from 'react';
 import tick from '../../assets/tick.png'
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FaArrowCircleDown, FaArrowCircleUp, FaArrowRight, FaArrowDown, FaTicketAlt } from 'react-icons/fa';
+import { FaArrowCircleDown, FaArrowCircleUp, FaArrowRight, FaArrowDown, FaTicketAlt,FaChevronDown,FaChevronUp, FaArrowLeft  } from 'react-icons/fa';
 import StudentHeader from '../../components/StudentHeader';
 import Chatbot from '../../components/Chatbot';
+import axios from 'axios';
 const GeneratedCoursePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -13,9 +14,16 @@ const GeneratedCoursePage = () => {
 const [unitCompletion, setUnitCompletion] = useState({});
 const [openResources, setOpenResources] = useState({});
   const [openAssignment, setOpenAssignment] = useState({});
+  const [courseTitle, setCourseTitle] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [quizData, setQuizData] = useState([]);
+  const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
+
 const toggleUnit = (index) => {
     setOpenUnits((prev) => ({ ...prev, [index]: !prev[index] }));
   };
+
+  
 
   const toggleTopic = (index) => {
     setOpenTopics((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -35,6 +43,44 @@ const toggleUnit = (index) => {
       [unitIndex]: !prev[unitIndex],
     }));
   };
+
+  const [formData, setFormData] = useState({
+  
+      subject:courseData.courseTitle,
+      focus_area: "",
+      difficulty: "easy",
+      units: 1
+  
+    });
+
+  const fetchQuiz = async (index) => {
+
+    const formData = {
+      subject:courseData.courseTitle,
+      focus_area:courseData.units[index].unitTitle,
+      difficulty:"easy",
+      units:1
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        "http://127.0.0.1:8000/generate-question",
+        formData
+      );
+      setQuizData(response.data.units[0].assessment.unitAssessment);
+      console.log("Quiz Data : ", response.data)
+      setCourseTitle(response.data.courseTitle)
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.error("Error fetching quiz data:", error);
+    }
+  };
+
+  const handleQuizRedirect = () => {
+    navigate('/aiMCQ', { state: { quizData, courseTitle, formData } });
+  }
 
   const handleCheckboxChange = (index) => {
     setUnitCompletion((prev) => ({
@@ -62,171 +108,201 @@ const [openUnits, setOpenUnits] = useState({});
   }
 
   return (
-    <div>
-        <StudentHeader/>
-        <Chatbot/>
-      <h1 className="text-3xl mt-32 font-bold mb-4 text-center">{courseData.courseTitle}</h1>
-                {courseData && (
-                  <div className="bg-gray-100 p-4 w-[800px] justify-self-center rounded-lg my-2">
-                    <h3 className="text-2xl font-bold">{courseData.courseTitle}</h3>
-                    {courseData.units.map((unit, index) => (
-                      <div key={index} className="mt-6">
-                        <div
-                          onClick={() =>
-                            !unitCompletion[index] && toggleUnit(index)
-                          }
-                          className={`flex items-center gap-4 bg-gray-200 hover:bg-gray-400 transition-all duration-300 rounded-lg p-3 ${
-                            unitCompletion[index]
-                              ? "cursor-not-allowed"
-                              : "cursor-pointer"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={!!unitCompletion[index]}
-                            onChange={() => handleCheckboxChange(index)}
-                            className="cursor-pointer hidden size-5 transition-all duration-300"
-                          />
-                          <h5
-                            className={`text-xl font-semibold flex-1 ${
-                              unitCompletion[index]
-                                ? "line-through text-gray-500"
-                                : "text-gray-800"
-                            }`}
-                          >
-                            Unit {index + 1}: {unit.unitTitle}
-                            
-                          </h5>
-                          <p className="bg-white p-2 rounded-lg">{unit.estimatedDuration}</p>
-                          {openUnits[index] ? (
-                            <FaArrowCircleUp size={30} />
-                          ) : (
-                            <FaArrowCircleDown size={30} />
-                          )}
-                        </div>
-                        
-                        {openUnits[index] && (
-                          <div className="mt-4">
-                           <div className="w-full rounded-lg bg-gray-600 h-[300px] text-white flex items-center justify-center">
-      {unit.youtube_video_url ? (
-        <iframe
-          width="100%"
-          height="100%"
-          src={unit.youtube_video_url.replace("watch?v=", "embed/")}
-          title="YouTube Video Player"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          
-        ></iframe>
-      ) : (
-        <p>No video available</p>
-      )}
-    </div>  
-                            <div className="mt-4">
-                            <h6
-          onClick={() => toggleResourse(index)}
-          className="font-semibold hover:bg-sky-200 cursor-pointer hover:shadow-md shadow-black transition-all duration-300 bg-white w-fit p-1 rounded-md flex"
+    <div className="min-h-screen max-w-[1000px] mx-auto ">
+  <StudentHeader />
+  <Chatbot/>
+  <div className="container py-10 px-6">
+    <h1 className="text-4xl mt-24 font-bold text-center text-gray-800">
+      {courseData.courseTitle}
+    </h1>
+    <div className="mt-8">
+      {courseData.units.map((unit, index) => (
+        <div
+          key={index}
+          className="bg-white shadow-lg rounded-lg p-6 mb-6 transition-all duration-300"
         >
-          {openResources[index] ? (
-            <FaArrowDown size={15} className="mr-1 my-auto" />
-          ) : (
-            <FaArrowRight size={15} className="mr-1 my-auto" />
-          )}
-          Resources
-        </h6>
-        {openResources[index] && (
-          <ul className="list-disc ml-6">
-          {unit.resources.map((topic, idx) => (
-            <li key={idx}>
-              <a
-                href={`https://www.google.com/search?q=${encodeURIComponent(topic)} resources`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                {topic}
-              </a>
-            </li>
-          ))}
-        </ul>
-        )}
-                          </div>
-                          <div className="mt-4">
-        <h6
-          onClick={() => toggleAssignment(index)}
-          className="font-semibold hover:bg-sky-200 cursor-pointer hover:shadow-md shadow-black transition-all duration-300 bg-white w-fit p-1 rounded-md flex"
-        >
-          {openAssignment[index] ? (
-            <FaArrowDown size={15} className="mr-1 my-auto" />
-          ) : (
-            <FaArrowRight size={15} className="mr-1 my-auto" />
-          )}
-          Topics
-        </h6>
-        {openAssignment[index] && (
-          <ol className="list-decimal ml-6 mt-2 space-y-2">
-            {unit.detailedContent.topicContents.map((topic, idx) => (
-              <li key={idx} className="text-base">
-                <span className="font-bold">{topic.topic}</span>
-                <p className="text-md text-gray-700 ml-4">{topic.content}</p>
+          <div
+            onClick={() => !unitCompletion[index] && toggleUnit(index)}
+            className={`flex items-center justify-between cursor-pointer ${
+              unitCompletion[index] ? "opacity-50 pointer-events-none" : ""
+            }`}
+          >
+            <h2 className="text-xl font-semibold text-gray-700">
+              Unit {index + 1}: {unit.unitTitle}
+            </h2>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-500">{unit.estimatedDuration}</span>
+              {openUnits[index] ? (
+                <FaChevronUp className="text-gray-600" />
+              ) : (
+                <FaChevronDown className="text-gray-600" />
+              )}
+            </div>
+          </div>
 
-                <div className='w-full grid gap-2 rounded-xl mt-2 mb-5 grid-cols-2'>
-                    <div className='border-black bg-gray-200 p-2 border rounded-xl'>
-                    <p className="font-bold mt-2">Examples:</p>
-                <ul className="list-decimal ml-6 mt-2 space-y-2">
-            {topic.examples.map((ex, idx) => (
-              <li key={idx} className="text-base">
-                <span>{ex}</span>
-              </li>
-            ))}
-              </ul>
-                    </div>
-                    <div className='border-black bg-gray-200 p-2 border rounded-xl'>
-                    <p className="font-bold mt-2">Exercises:</p>
-                <ul className="list-decimal ml-6 mt-2 space-y-2">
-            {topic.exercises.map((ex, idx) => (
-              <li key={idx} className="text-base">
-                <span>{ex}</span>
-              </li>
-            ))}
-              </ul>
-                    </div>
-                </div>
-                
-              
-                
-              </li>
-            ))}
-          </ol>
-        )}
+          {openUnits[index] && (
+            <div className="mt-4 space-y-4">
+              {/* Video Section */}
+              <div className="relative h-96 bg-black rounded-lg overflow-hidden">
+                {unit.youtube_video_url ? (
+                  <iframe
+                    src={unit.youtube_video_url.replace("watch?v=", "embed/")}
+                    title="YouTube Video Player"
+                    frameBorder="0"
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  ></iframe>
+                ) : (
+                  <p className="text-white text-center py-10">No video available</p>
+                )}
+              </div>
+
+              {/* Resources Section */}
+              <div>
+                <h3
+                  onClick={() => toggleResourse(index)}
+                  className="font-medium cursor-pointer text-blue-600 hover:underline"
+                >
+                  {openResources[index] ? "Hide Resources" : "Show Resources"}
+                </h3>
+                {openResources[index] && (
+                  <ul className="list-disc list-inside space-y-2 text-gray-700">
+                    {unit.resources.map((resource, idx) => (
+                      <li key={idx}>
+                        <a
+                          href={`https://www.google.com/search?q=${encodeURIComponent(
+                            resource
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:underline"
+                        >
+                          {resource}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Topics Section */}
+<div className="bg-white rounded-lg mt-6">
+  <h3
+    onClick={() => toggleAssignment(index)}
+    className="font-medium cursor-pointer text-blue-600 hover:underline mb-4"
+  >
+    {openAssignment[index] ? (<div className='flex gap-2'>Hide Topics<FaArrowCircleUp className='my-auto'/></div>) : (<div className='flex gap-2'>Show Topics<FaArrowCircleDown className='my-auto'/></div>)}
+  </h3>
+  {openAssignment[index] && (
+    <div className="relative flex flex-col items-center space-y-4">
+      {/* Navigation Arrows */}
+      {currentTopicIndex > 0 && (
+        <button
+          className="absolute shadow-md shadow-gray-500 left-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition"
+          onClick={() => setCurrentTopicIndex(currentTopicIndex - 1)}
+        >
+          <FaArrowLeft />
+        </button>
+      )}
+
+      <div
+        className="bg-gray-100 p-6 w-full rounded-lg shadow transition-transform duration-300"
+        key={unit.detailedContent.topicContents[currentTopicIndex].topic}
+      >
+        <h4 className="text-xl font-semibold text-gray-800 mb-2">
+          {unit.detailedContent.topicContents[currentTopicIndex].topic}
+        </h4>
+        <p className="text-gray-600">
+          {unit.detailedContent.topicContents[currentTopicIndex].content}
+        </p>
+        {/* Examples and Exercises */}
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          {/* Examples */}
+          <div className="bg-white p-4 shadow-md rounded-lg">
+            <h5 className="text-lg font-bold mb-2">Examples:</h5>
+            <ul className="list-disc ml-4 text-gray-700">
+              {unit.detailedContent.topicContents[currentTopicIndex].examples.map(
+                (example, idx) => (
+                  <li key={idx} className="text-sm">
+                    {example}
+                  </li>
+                )
+              )}
+            </ul>
+          </div>
+          {/* Exercises */}
+          <div className="bg-white p-4 shadow-md rounded-lg">
+            <h5 className="text-lg font-bold mb-2">Exercises:</h5>
+            <ul className="list-disc ml-4 text-gray-700">
+              {unit.detailedContent.topicContents[currentTopicIndex].exercises.map(
+                (exercise, idx) => (
+                  <li key={idx} className="text-sm">
+                    {exercise}
+                  </li>
+                )
+              )}
+            </ul>
+          </div>
+        </div>
+        
+        <p className='text-center mt-2 font-thin'>Feeling Confident about the topic?</p>
+        <div className='flex gap-5 justify-center my-4'>
+        <button className="bg-sky-300 p-2 rounded-lg" onClick={()=>fetchQuiz(index)}> {loading ? (<> Generating </>) : (<> Generate a Quiz </>)} </button>
+        {quizData.length > 0 && (
+      <button className="bg-sky-600 text-white p-2 rounded-lg" onClick={handleQuizRedirect}> Attempt Quiz</button>
+    )}
+        </div>
+      </div>
+
+      {/* Right Arrow */}
+      {currentTopicIndex < unit.detailedContent.topicContents.length - 1 && (
+        <button
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-2 rounded-full  shadow-md shadow-gray-500  hover:bg-blue-600 transition"
+          onClick={() => setCurrentTopicIndex(currentTopicIndex + 1)}
+        >
+          <FaArrowRight/>
+        </button>
+      )}
+
+      {/* Progress Indicator */}
+      <div className="flex space-x-2 mt-4">
+        {unit.detailedContent.topicContents.map((_, idx) => (
+          <span
+            key={idx}
+            className={`h-3 w-3 rounded-full ${
+              idx === currentTopicIndex ? "bg-blue-500" : "bg-gray-300"
+            }`}
+          ></span>
+        ))}
+        
       </div>
       
-                          <div className="mt-4 mx-auto w-full">
-                          
-                          
-                          <button onClick={()=> handleCheckboxChange(index)} className='bg-green-300  justify-self-center hover:bg-green-500 transition-all duration-300 p-1 pr-3 rounded-lg flex'>
-                           <img className='size-6 mr-2 m-2' src={tick}/>
-                           <p className='my-auto'>Mark as Completed</p>
-                           </button>
-                           </div>
-                          </div>
-                        )}
-                       
-                      </div>
-                    ))}
-                    
-                  </div>
-                )}
-                <div className='w-full flex justify-center'>
-      <button
-        onClick={() => navigate(-1)}
-        className="bg-sky-300 mt-10 hover:bg-sky-600 hover:text-white text-black transition-all duration-300 px-4 py-2 justify-self-center rounded-lg"
-      >
-        Go Back
-      </button>
-      </div>
+      
     </div>
+    
+  )}
+</div>
+
+
+              {/* Completion Button */}
+              <div className="text-center">
+                <button
+                  onClick={() => handleCheckboxChange(index)}
+                  className="px-4 py-2 bg-green-500 text-white font-medium rounded-lg shadow-md hover:bg-green-700"
+                >
+                  Mark as Completed
+                </button>
+              </div>
+              
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
   );
 };
 

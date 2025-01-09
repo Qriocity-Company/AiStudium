@@ -10,6 +10,7 @@ const Course = () => {
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false); // Modal for course details
   const [courseName, setCourseName] = useState("");
   const [notes, setNotes] = useState([]);
+  const [content, setContent] = useState("");
   const [videoLectures, setVideoLectures] = useState([""]);
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null); // To store the selected course for modal
@@ -92,6 +93,39 @@ const Course = () => {
     }
   };
 
+  const fetchDomain = async (file_url) => {
+    console.log(file_url)
+    try {
+      // Send a request to detect the domain from the file
+      const response = await axios.post("http://127.0.0.1:8000/detect-domain-from-file", {
+        file_url,
+      });
+  
+      // Extract subDomain and fileName from the response
+      const { subdomain, filename } = response.data;
+  
+      // Call postDomain to save subDomain and fileName
+      await postDomain(subdomain, filename);
+    } catch (error) {
+      console.error("Error detecting domain from file:", error);
+    }
+  };
+
+  const postDomain = async (domainName, document) => {
+    console.log("Domain Name : ", domainName)
+    console.log("Document Name : ", document)
+    try {
+      // Save the domain and document in the backend
+      await axios.post("http://localhost:8000/domains/add", {
+        domainName,
+        document
+      });
+      alert("Domain added successfully!");
+    } catch (error) {
+      console.error("Error posting domain:", error);
+    }
+  };
+
   // Submit Form
   const submitCourse = async () => {
     const courseData = {
@@ -100,11 +134,13 @@ const Course = () => {
       videoLectures,
       image,
       description,
+      content
     };
 
     try {
-      await axios.post("https://aistudiumb.onrender.com/course/createCourse", courseData);
+      await axios.post("http://localhost:8000/course/createCourse", courseData);
       alert("Course added successfully!");
+      fetchDomain(notes[0]);
       toggleModal();
       fetchCourses();
     } catch (error) {
@@ -116,7 +152,7 @@ const Course = () => {
   const fetchCourses = async () => {
     try {
       const { data } = await axios.get(
-        "https://aistudiumb.onrender.com/course/allCourses"
+        "http://localhost:8000/course/allCourses"
       );
       setCourses(data.courses);
     } catch (error) {
@@ -131,7 +167,7 @@ const Course = () => {
   // Delete Course
   const deleteCourse = async (courseId) => {
     try {
-      await axios.post(`https://aistudiumb.onrender.com/course/delete`, {
+      await axios.post(`http://localhost:8000/course/delete`, {
         courseId,
       });
       alert("Course deleted successfully!");
@@ -189,6 +225,7 @@ const Course = () => {
                 <p>
                   <strong>Notes:</strong> {course.notes.length} notes
                 </p>
+                
                 <p>
                   <strong>Lectures:</strong> {course.videoLectures.length}{" "}
                   lectures
@@ -296,6 +333,18 @@ const Course = () => {
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter description of the course"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold mb-2">
+                  Course Content
+                </label>
+                <textarea
+                  type="text"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter Content of the course"
                 />
               </div>
               <div>

@@ -7,7 +7,7 @@ const Header = () => {
     <header className="bg-gradient-to-r from-blue-500 to-indigo-500 shadow-lg">
       <div className="container mx-auto flex justify-between items-center p-4">
         {/* Logo/Title */}
-        <a href="/home">
+        <a href="/course">
         <h1 className="text-2xl fon  t-bold text-white">
           AI<span className="text-yellow-300">Studium</span>
         </h1>

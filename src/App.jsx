@@ -16,6 +16,7 @@ import SingleCourse from "./Pages/student/SingleCourse";
 import Profile from "./Pages/student/Profile";
 import GeneratedCoursePage from "./Pages/student/GeneratedCourse";
 import Content from "./Pages/admin/Content";
+import StudentsProfile from "./Pages/admin/StudentsProfile";
 
 const App = () => {
   return (
@@ -27,6 +28,7 @@ const App = () => {
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/question" element={<Questions />} />
         <Route path="/students" element={<Students />} />
+        <Route path="/students/:userId" element={<StudentsProfile/>} />
         <Route path="/content" element={<Content/>} />
         <Route path="/home" element={<Home />} />
         <Route path="/enrolled" element={<EnrolledCourse />} />

@@ -3,21 +3,24 @@ import StudentHeader from "../../components/StudentHeader";
 import axios from "axios";
 import { Bar } from "react-chartjs-2";
 import "chart.js/auto"; // Necessary for Chart.js v3+
-
-const Profile = () => {
+import { useParams } from "react-router-dom";
+import Header from '../../components/Header'
+const StudentsProfile = () => {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
-  const user = JSON.parse(localStorage.getItem("user"));
-  const userId = user._id;
+  const [user, setUser] = useState({});
+  const userId = useParams();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const getUserData = async () => {
+    console.log("User ID ", userId)
     try {
-      const { data } = await axios.post("https://aistudiumb.onrender.com/user/get-user", {
-        id: userId,
+      const { data } = await axios.post("http://localhost:8000/user/get-user", {
+        id: userId.userId,
       });
-      console.log("User Data:", data); // Log the data to verify the structure
+      setUser(data.user)
+      console.log("User Data:", data.user); // Log the data to verify the structure
       setEnrolledCourses(data?.user.enrolledCourses || []);
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -31,7 +34,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const response = await axios.get(`https://aistudiumb.onrender.com/api/results/user/${userId}`);
+        const response = await axios.get(`http://localhost:8000/api/results/user/${userId.userId}`);
         setResults(response.data);
         setLoading(false);
       } catch (error) {
@@ -60,11 +63,15 @@ const Profile = () => {
 
   return (
     <>
-      <StudentHeader />
-      <div className="container max-w-4xl mt-24 mx-auto bg-gradient-to-r from-sky-200 rounded-lg to-lime-200 p-8">
+      <Header/>
+      <h1 className="text-5xl text-center font-bold text-blue-500 font-sans mt-5">
+      Student - {user.name}
+      </h1>
+      <div className="container max-w-4xl mt-8 mx-auto bg-gradient-to-r from-sky-200 rounded-lg to-lime-200 p-8">
+        
         <h2 className="text-3xl font-semibold text-center mb-8 text-blue-600">
           Enrolled Courses
-        </h2>
+        </h2> 
         {enrolledCourses.length > 0 ? (
           <div className="space-y-6">
             {enrolledCourses.map((course, index) => {
@@ -148,4 +155,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default StudentsProfile;

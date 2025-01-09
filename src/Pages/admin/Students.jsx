@@ -12,6 +12,7 @@ const Students = () => {
         "https://aistudiumb.onrender.com/user/getAllstudents"
       );
       setAllUsers(data.user);
+      console.log(data.user)
     } catch (error) {
       console.log(error);
     }
@@ -79,11 +80,11 @@ const Students = () => {
             {users.length > 0 ? (
               users.map((user) => (
                 <tr key={user._id} className="border-b">
-                  <td className="py-2 px-4">{user.name}</td>
+                  <a href={`/students/${user._id}`}><td className="py-2 text-blue-600 hover:underline underline-offset-2 px-4">{user.name}</td></a>
                   <td className="py-2 px-4">{user.email}</td>
                   <td className="py-2 px-4">
-                    {user?.courses?.length > 0
-                      ? user.courses.join(", ")
+                    {user?.enrolledCourses?.length > 0
+                      ? user.enrolledCourses.join(", ")
                       : "No courses enrolled"}
                   </td>
                 </tr>
