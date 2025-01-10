@@ -24,9 +24,8 @@ const Course = () => {
 
   const getDomains = async () => {
     try {
-      const domainData = await axios.post(
-        "https://aistudiumb.onrender.com/domains/search",
-        { domainName: "p" }
+      const domainData = await axios.get(
+        "http://localhost:8000/domains/all"
       );
       console.log("Domains fetched:", domainData.data);
       setDomainData(domainData.data);
@@ -294,31 +293,30 @@ const Course = () => {
         
 
       <div className="justify-self-center">
-        <div className="text-center w-fit bg-gray-100 p-6 rounded-lg shadow-lg">
-  <h1 className="text-3xl font-bold text-gray-800 mb-4">Labelled Documents</h1>
-  <div className="text-left">
-    <h2 className="text-xl font-semibold text-gray-700 mb-2">
-      Domain: <span className="text-blue-600">{domainData?.domainName}</span>
-    </h2>
-    <h3 className="text-lg font-medium text-gray-600">Documents:</h3>
-    <ul className="list-disc list-inside mt-2">
-      {domainData.documents?.map((doc, index) => (
-        <li key={index} className="mb-2">
-          <a
-            href={`/${doc}`} // Update this URL based on your routing or file path logic
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
-          >
-            {doc}
-          </a>
-        </li>
+  <div className="text-center w-full bg-gray-100 p-6 rounded-lg shadow-lg">
+    <h1 className="text-3xl font-bold text-gray-800 mb-6">Labelled Documents</h1>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {domainData?.domains?.map((dom, index) => (
+        <div
+          key={index}
+          className="bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow"
+        >
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">
+            Domain: <span className="text-blue-600">{dom.domainName}</span>
+          </h2>
+          <ul className="list-disc list-inside text-gray-700">
+            {dom.documents.map((doc, docIndex) => (
+              <li key={docIndex}>
+                <span className="text-blue-500 hover:underline">{doc}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       ))}
-    </ul>
+    </div>
   </div>
 </div>
 
-        </div>
       
 
 
