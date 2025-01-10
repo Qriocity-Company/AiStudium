@@ -7,6 +7,9 @@ import { FaArrowCircleDown, FaArrowCircleUp, FaArrowRight, FaArrowDown, FaTicket
 import StudentHeader from '../../components/StudentHeader';
 import Chatbot from '../../components/Chatbot';
 import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+
+
 const GeneratedCoursePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -19,6 +22,9 @@ const [openResources, setOpenResources] = useState({});
   const [quizData, setQuizData] = useState([]);
   const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
 const [domainData, setDomainData] = useState({});
+const [courseSaved, setCourseSaved] = useState(false);
+const user = JSON.parse(localStorage.getItem("user"));
+const userId = user._id;
 
   const getDomains = async () => {
     try {
@@ -32,9 +38,31 @@ const [domainData, setDomainData] = useState({});
       console.error("Error fetching domains:", error);
     }
   };
+  
+  const handleSaveCourse = async () => {
+    const postUnits = courseData.units
+    const newcourseData = {
+      userId: userId,
+      courseTitle: courseData.courseTitle,
+      units:postUnits
+    }
+    console.log("POSTING COURSE DATA",newcourseData)
+    try {
+      // Make a POST request to the backend
+      const response = await axios.post("http://localhost:8000/gencourse/add", newcourseData);
+      
+      // Handle success
+      toast.success("Course saved successfully:");
+      setCourseSaved(true)
+      
+    } catch (error) {
+      
+      toast.warning("Failed to save quiz result. Please try again.");
+    }
+  };
 
   useEffect(() => {
-      
+      console.log("Generated Course:", courseData)
       getDomains();
     }, []);
 
@@ -160,6 +188,7 @@ const [openUnits, setOpenUnits] = useState({});
     <div className="min-h-screen max-w-[1000px] mx-auto ">
   <StudentHeader />
   <Chatbot/>
+  <ToastContainer/>
   <div className="container py-10 px-6">
     <h1 className="text-4xl mt-24 font-bold text-center text-gray-800">
       {courseData.courseTitle}
@@ -377,7 +406,14 @@ const [openUnits, setOpenUnits] = useState({});
     </div>
     {allUnitsCompleted && (
     <div className='text-center'>
-    
+    <button
+  onClick={handleSaveCourse}
+  disabled={courseSaved} // Disable the button if the course is saved
+  className={`p-2 rounded-lg mx-5 text-white transition-all duration-300 
+    ${courseSaved ? "bg-green-500 scale-105 cursor-not-allowed" : "bg-orange-400 hover:bg-orange-600"}`}
+>
+  {courseSaved ? "Saved" : "Save Course"}
+</button>
     <button onClick={()=>fetchMasterQuiz()} className='bg-green-200 hover:bg-green-400 transition-all duration-300 p-2 rounded-lg'> {loading ? (<> Generating </>) : (<> Generate Master Quiz </>)} </button>
     </div>
     )}
