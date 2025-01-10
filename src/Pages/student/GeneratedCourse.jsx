@@ -1,5 +1,5 @@
 // src/pages/GeneratedCoursePage.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import React from 'react';
 import tick from '../../assets/tick.png'
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -18,6 +18,30 @@ const [openResources, setOpenResources] = useState({});
   const [loading, setLoading] = useState(false);
   const [quizData, setQuizData] = useState([]);
   const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
+const [domainData, setDomainData] = useState({});
+
+  const getDomains = async () => {
+    try {
+      const domainData = await axios.post(
+        "https://aistudiumb.onrender.com//domains/search",
+        { domainName: "p" }
+      );
+      console.log("Domains fetched:", domainData.data);
+      setDomainData(domainData.data);
+    } catch (error) {
+      console.error("Error fetching domains:", error);
+    }
+  };
+
+  useEffect(() => {
+      
+      getDomains();
+    }, []);
+
+
+  const allUnitsCompleted =
+    Object.keys(unitCompletion).length === courseData.units.length &&
+    Object.values(unitCompletion).every((completed) => completed);
 
 const toggleUnit = (index) => {
     setOpenUnits((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -65,7 +89,32 @@ const toggleUnit = (index) => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://127.0.0.1:8000/generate-question",
+        "https://fullcoursegen-cvil.onrender.com/generate-question",
+        formData
+      );
+      setQuizData(response.data.units[0].assessment.unitAssessment);
+      console.log("Quiz Data : ", response.data)
+      setCourseTitle(response.data.courseTitle)
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.error("Error fetching quiz data:", error);
+    }
+  };
+
+  const fetchMasterQuiz = async () => {
+
+    const formData = {
+      subject:courseData.courseTitle,
+      focus_area:courseData.courseTitle,
+      difficulty:"easy",
+      units:1
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        "https://fullcoursegen-cvil.onrender.com/generate-question",
         formData
       );
       setQuizData(response.data.units[0].assessment.unitAssessment);
@@ -245,6 +294,32 @@ const [openUnits, setOpenUnits] = useState({});
             </ul>
           </div>
         </div>
+        <div className="justify-self-center">
+        <div className="text-center mt-5 w-fit bg-gray-100 p-6 rounded-lg shadow-lg">
+  <h1 className="text-xl font-bold text-gray-800 mb-4">Related Docs</h1>
+  <div className="text-left">
+    <h2 className="text-lg font-semibold text-gray-700 mb-2">
+      Domain: <span className="text-blue-600">{domainData?.domainName}</span>
+    </h2>
+    <h3 className="text-md font-medium text-gray-600">Documents:</h3>
+    <ul className="list-disc list-inside mt-2">
+      {domainData.documents?.map((doc, index) => (
+        <li key={index} className="mb-2">
+          <a
+            href={`/${doc}`} // Update this URL based on your routing or file path logic
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            {doc}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+        </div>
         
         <p className='text-center mt-2 font-thin'>Feeling Confident about the topic?</p>
         <div className='flex gap-5 justify-center my-4'>
@@ -300,6 +375,15 @@ const [openUnits, setOpenUnits] = useState({});
         </div>
       ))}
     </div>
+    {allUnitsCompleted && (
+    <div className='text-center'>
+    
+    <button onClick={()=>fetchMasterQuiz()} className='bg-green-200 hover:bg-green-400 transition-all duration-300 p-2 rounded-lg'> {loading ? (<> Generating </>) : (<> Generate Master Quiz </>)} </button>
+    </div>
+    )}
+    {quizData.length > 0 && (
+      <button className="bg-sky-600 text-white p-2 rounded-lg" onClick={handleQuizRedirect}> Attempt Quiz</button>
+    )}
   </div>
 </div>
 

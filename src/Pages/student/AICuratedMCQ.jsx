@@ -25,7 +25,7 @@ const AICuratedMCQ = () => {
   const initialcourseTitle = location.state?.courseTitle;
   const [quizData, setQuizData] = useState(initialQuizData || []); // Initialize state with location data or an empty array
   const [courseTitle, setCourseTitle] = useState(initialcourseTitle || "");
-  const [timeRemaining, setTimeRemaining] = useState(900); // 15 minutes timer (900 seconds)
+  const [timeRemaining, setTimeRemaining] = useState(0); // 15 minutes timer (900 seconds)
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [quizTimeTaken, setQuizTimeTaken] = useState(null);
   
@@ -42,6 +42,7 @@ const AICuratedMCQ = () => {
   const [userInput, setUserInput] = useState("");
   const [userResponse, setUserResponse] = useState("");
   const [courseData, setCourseData] = useState(null);
+  const [courseRecom, setCourseRecom] = useState({})
 
   
   const [chatHistory, setChatHistory] = useState([
@@ -85,11 +86,15 @@ const AICuratedMCQ = () => {
     navigate('/generated-course', { state: { courseData } });
   };
 
+
+
+
+
   const fetchQuiz = async () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://127.0.0.1:8000/generate-question",
+        "https://fullcoursegen-cvil.onrender.com/generate-question",
         formData
       );
       setQuizData(response.data.units[0].assessment.unitAssessment);
@@ -115,6 +120,25 @@ const AICuratedMCQ = () => {
     }
   };
 
+  const handleGenerateRecom = async () => {
+    const recomData = {
+      student_level:level,course: courseTitle
+    }
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "https://fullcoursegen-ibzp.onrender.com/course-recommendation",
+        recomData
+      );
+      setCourseRecom(response.data);
+      console.log("RECOMMENDATION DATA : ",response.data)
+    } catch (error) {
+      console.log("Error",error)
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const questions = [
     "What is the subject for your quiz?",
     "What difficulty level do you prefer? (easy, medium, hard)",
@@ -126,7 +150,7 @@ const AICuratedMCQ = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/generate-course",
+        "https://fullcoursegen.onrender.com/generate-course",
         formData
       );
       setCourseData(response.data);
@@ -144,7 +168,7 @@ const AICuratedMCQ = () => {
       
       console.log("Input for Level Prediction : ", levelData)
       const response = await axios.post(
-        "http://127.0.0.1:8000/predict-level", levelData
+        "https://fullcoursegen-cvil.onrender.com/predict-level", levelData
       );
       setLevel(response.data)
       console.log(response)
@@ -328,7 +352,7 @@ const AICuratedMCQ = () => {
       )}
 
 
-        {showModal && (
+        { showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded shadow-lg text-center">
               <h2 className="text-2xl font-bold mb-4">Your Score</h2>
@@ -383,14 +407,48 @@ const AICuratedMCQ = () => {
 
         {showPerfModal && (
           <>
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded shadow-lg text-center">
+          <div className="fixed inset-0  bg-black bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white mt-16 p-6 rounded shadow-lg text-center">
               <h2 className="text-xl font-serif mb-5"> PERFOMANCE MODAL </h2>
               <h2 className="text-lg font-bold">Quiz : {courseTitle} </h2>
-              
               <h2 className="text-lg font-bold">Your Score : {score}/{results.length} </h2>
-              <p className="text-lg mb-4 font-bold">Time Taken : {quizTimeTaken} seconds</p>
+              <p className="text-lg mb-4 font-bold">Time Taken : 15 seconds</p>
               <p className="text-lg mb-4 font-bold">Your Level : {level}</p>
+
+              <div>
+                {courseRecom ? (<>
+                  <div className="p-6">
+  <h2 className="text-2xl font-bold mb-4 text-gray-800">Recommended Courses</h2>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+    {courseRecom.recommendations?.map((course, index) => (
+      <div
+        key={index}
+        className="bg-white w-64 shadow-lg rounded-lg p-4 border border-gray-200 hover:shadow-xl transition-shadow"
+      >
+        <h3 className="text-lg font-semibold text-gray-700">
+          {course.subject}
+        </h3>
+        <p className="text-gray-600 mt-2">
+          Focus Area: <span className="text-gray-800">{course.focus_area}</span>
+        </p>
+        <p className="text-gray-600 mt-2">
+          Units: <span className="text-gray-800">{course.units}</span>
+        </p>
+        <button
+                onClick={()=>(handleGenerateCourse())}
+                className="bg-emerald-500 ml-10 text-white p-2 rounded mt-4"
+              >
+                Generate Course
+              </button>
+      </div>
+    ))}
+  </div>
+</div>
+
+                </>):(<>
+                
+                </>)}
+              </div>
               
               <button
                 onClick={() => setShowPerfModal(false)}
@@ -398,13 +456,21 @@ const AICuratedMCQ = () => {
               >
                 Close
               </button>
-              <button
+              {/* <button
                 onClick={()=>(setShowPerfModal(false),setShowUnitModal(true))}
                 className="bg-emerald-500 ml-10 text-white p-2 rounded mt-4"
               >
-                Generate a Course 
+                Generate a Course of Quiz
+              </button> */}
+              {courseData ? (<><button onClick={handleViewCourse} className="bg-sky-500 ml-10 text-white p-2 rounded mt-4">VIEW GENERTED COURSE</button></>):(<><button disabled className="bg-sky-500 ml-10 text-white p-2 rounded mt-4">Generating Course</button></>)}
+              
+              <button
+                onClick={handleGenerateRecom}
+                className="bg-emerald-500 ml-10 text-white p-2 rounded mt-4"
+              >
+                Recommended Courses
               </button>
-              {courseData ? (<><button onClick={handleViewCourse} className="bg-sky-500 ml-10 text-white p-2 rounded mt-4">VIEW GENERTED COURSE</button></>):(<></>)}
+              
             </div>
           </div>
           </>

@@ -63,7 +63,7 @@ const AllCourses = () => {
       try {
         setLoading(true);
         const response = await axios.post(
-          "http://127.0.0.1:8000/generate-question",
+          "https://fullcoursegen-cvil.onrender.com/generate-question",
           formData
         );
         setQuizData(response.data.units[0].assessment.unitAssessment);
@@ -108,7 +108,7 @@ const AllCourses = () => {
   const getCourses = async () => {
     try {
       const { data } = await axios.get(
-        "http://localhost:8000/course/allCourses"
+        "https://aistudiumb.onrender.com/course/allCourses"
       );
       setCourses(data.courses); // Assuming 'data.courses' is the array of courses
     } catch (error) {
@@ -119,7 +119,7 @@ const AllCourses = () => {
   const handleEnroll = async (id) => {
     try {
       const { data } = await axios.post(
-        "http://localhost:8000/user/enrollCourse",
+        "https://aistudiumb.onrender.com/user/enrollCourse",
         {
           courseId: id,
           userId: userId,

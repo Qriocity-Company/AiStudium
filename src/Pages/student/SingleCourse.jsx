@@ -10,7 +10,7 @@ const SingleCourse = () => {
   const fetchDomains = async (domainName) => {
     try {
       const data  = await axios.post(
-        "http://localhost:8000/domains/search",
+        "aistudiumb.onrender.com/domains/search",
         { domainName}
       );
       setDomainData(data)
@@ -37,7 +37,7 @@ const SingleCourse = () => {
 
   useEffect(() => {
     getSingleCourse();
-    fetchDomains(courseName);
+    
   }, []);
 
   if (!courseData) {
@@ -71,7 +71,37 @@ const SingleCourse = () => {
         {/* Video Lectures */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-3xl font-semibold mb-4 text-gray-800">
-            Video Lectures
+            Uploaded Lectures
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {courseData.videos?.map((video, index) => (
+              <div
+                key={index}
+                className="bg-gray-200 rounded-lg shadow p-4 relative"
+              >
+                <iframe
+                  className="w-full rounded-lg"
+                  height="300"
+                  src={video.replace("watch?v=", "embed/")}
+                  title={`Video ${index + 1}`}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+                <p className="absolute bottom-2 left-2 text-sm font-medium text-gray-700">
+                  Video {index + 1}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+
+
+        {/* Video Lectures */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-3xl font-semibold mb-4 text-gray-800">
+            Youtube Lectures
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {courseData.videoLectures.map((video, index) => (

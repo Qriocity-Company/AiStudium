@@ -10,6 +10,7 @@ const Course = () => {
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false); // Modal for course details
   const [courseName, setCourseName] = useState("");
   const [notes, setNotes] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [content, setContent] = useState("");
   const [videoLectures, setVideoLectures] = useState([""]);
   const [courses, setCourses] = useState([]);
@@ -19,18 +20,22 @@ const Course = () => {
   const [domain, setDomain] = useState("");
   const [apiResponse, setApiResponse] = useState("");
   const [isDomainPopupVisible, setIsDomainPopupVisible] = useState(true); // Control visibility
-  
-  const handlePostDomain = async () => {
+  const [domainData, setDomainData] = useState({});
+
+  const getDomains = async () => {
     try {
-      const response = await axios.post("http://127.0.0.1:8000/recommend-courses", { domain });
-      const parsedResponse = JSON.parse(response.data);
-      setApiResponse(parsedResponse);
-      console.log("data:", response)
+      const domainData = await axios.post(
+        "https://aistudiumb.onrender.com/domains/search",
+        { domainName: "p" }
+      );
+      console.log("Domains fetched:", domainData.data);
+      setDomainData(domainData.data);
     } catch (error) {
-      console.error("Error posting domain:", error);
-      alert("Failed to fetch recommendations. Please try again.");
+      console.error("Error fetching domains:", error);
     }
   };
+  
+  
 
   // Open/Close Modal for adding a course
   const toggleModal = () => {
@@ -68,7 +73,7 @@ const Course = () => {
       );
       const imageUrl = response.data.secure_url; // Get the secure URL of the uploaded image
       setImage(imageUrl); // Update state with the image URL
-      alert("Image uploaded successfully!");
+      
     } catch (error) {
       console.error("Error uploading image:", error);
       alert("Failed to upload image. Please try again.");
@@ -93,11 +98,29 @@ const Course = () => {
     }
   };
 
+  // Upload Notes File to Cloudinary
+  const uploadVideos = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "vqohpgdn"); // Replace with your Cloudinary preset
+    formData.append("resource_type", "raw");
+
+    try {
+      const response = await axios.post(
+        "https://api.cloudinary.com/v1_1/dcigsqglj/auto/upload", // Replace with your Cloudinary endpoint
+        formData
+      );
+      setVideos([...videos, response.data.url]);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }
+  };
+
   const fetchDomain = async (file_url) => {
     console.log(file_url)
     try {
       // Send a request to detect the domain from the file
-      const response = await axios.post("http://127.0.0.1:8000/detect-domain-from-file", {
+      const response = await axios.post("https://fullcoursegen-1.onrender.com/detect-domain-from-file", {
         file_url,
       });
   
@@ -116,7 +139,7 @@ const Course = () => {
     console.log("Document Name : ", document)
     try {
       // Save the domain and document in the backend
-      await axios.post("http://localhost:8000/domains/add", {
+      await axios.post("https://aistudiumb.onrender.com/domains/add", {
         domainName,
         document
       });
@@ -131,6 +154,7 @@ const Course = () => {
     const courseData = {
       courseName,
       notes,
+      videos,
       videoLectures,
       image,
       description,
@@ -138,7 +162,7 @@ const Course = () => {
     };
 
     try {
-      await axios.post("http://localhost:8000/course/createCourse", courseData);
+      await axios.post("https://aistudiumb.onrender.com/course/createCourse", courseData);
       alert("Course added successfully!");
       fetchDomain(notes[0]);
       toggleModal();
@@ -152,9 +176,12 @@ const Course = () => {
   const fetchCourses = async () => {
     try {
       const { data } = await axios.get(
-        "http://localhost:8000/course/allCourses"
+        "https://aistudiumb.onrender.com/course/allCourses"
       );
       setCourses(data.courses);
+      if (data.courses.length > 0) {
+        setCourseName(data.courses[0].courseName); // Safely set courseName
+      }
     } catch (error) {
       console.error("Error fetching courses:", error);
     }
@@ -162,12 +189,13 @@ const Course = () => {
 
   useEffect(() => {
     fetchCourses();
+    getDomains();
   }, []);
 
   // Delete Course
   const deleteCourse = async (courseId) => {
     try {
-      await axios.post(`http://localhost:8000/course/delete`, {
+      await axios.post(`https://aistudiumb.onrender.com/course/delete`, {
         courseId,
       });
       alert("Course deleted successfully!");
@@ -233,6 +261,9 @@ const Course = () => {
                 <p>
                   <strong>Quizzes:</strong> {course.quizes.length} quizzes
                 </p>
+                <p>
+                  <strong>Videos:</strong> {course.videos.length} videos
+                </p>
                 <div className="flex justify-between mt-4">
                   <button
                     onClick={() => toggleCourseModal(course)}
@@ -260,50 +291,35 @@ const Course = () => {
           <p className="text-gray-600 text-center">No courses available.</p>
         )}
       </div>
+        
 
-      <div className="container text-center justify-center flex mx-auto mt-4">
-      <input
-          type="text"
-          value={domain}
-          onChange={(e) => setDomain(e.target.value)}
-          className="mr-10 px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-200"
-          placeholder="Enter domain..."
-        />
-        <button
-          onClick={handlePostDomain}
-          className="w-fit flex  bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300"
-        >
-         <IoReload className="my-auto mr-2" />   Get Recommendations
-        </button>
-      </div>
-
-      <div className="container mb-64 mx-auto mt-4">
-  {apiResponse ? (
-    <div>
-      <h3 className="text-2xl font-semibold text-center mb-6 text-gray-800">
-        Recommended Courses
-      </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {apiResponse.courses.map((course, index) => (
-          <div
-            key={index}
-            className="bg-gray-300 shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow duration-300"
+      <div className="justify-self-center">
+        <div className="text-center w-fit bg-gray-100 p-6 rounded-lg shadow-lg">
+  <h1 className="text-3xl font-bold text-gray-800 mb-4">Labelled Documents</h1>
+  <div className="text-left">
+    <h2 className="text-xl font-semibold text-gray-700 mb-2">
+      Domain: <span className="text-blue-600">{domainData?.domainName}</span>
+    </h2>
+    <h3 className="text-lg font-medium text-gray-600">Documents:</h3>
+    <ul className="list-disc list-inside mt-2">
+      {domainData.documents?.map((doc, index) => (
+        <li key={index} className="mb-2">
+          <a
+            href={`/${doc}`} // Update this URL based on your routing or file path logic
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
           >
-            <h4 className="text-lg font-semibold text-gray-800 mb-3">
-              {course}
-            </h4>
-            <p className="text-gray-600 text-sm">
-              This is a recommended course tailored for your interest in the domain.
-            </p>
-            
-          </div>
-        ))}
-      </div>
-    </div>
-  ) : (
-    <p className="text-gray-600 text-center"></p>
-  )}
+            {doc}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
 </div>
+
+        </div>
+      
 
 
       {/* Modal for adding a course */}
@@ -312,6 +328,16 @@ const Course = () => {
           <div className="bg-white rounded-lg w-3/4 max-w-3xl p-6 shadow-lg h-[600px] overflow-auto">
             <h2 className="text-2xl font-bold text-center mb-4">Add Course</h2>
             <div className="space-y-4">
+
+            <div>
+                <label className="block font-semibold mb-2">Course Thumbnail</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImage(e.target.files[0])}
+                  className="w-full border border-gray-300 rounded-lg p-2"
+                />
+              </div>
               {/* Course Name */}
               <div>
                 <label className="block font-semibold mb-2">Course Name</label>
@@ -347,14 +373,20 @@ const Course = () => {
                   placeholder="Enter Content of the course"
                 />
               </div>
+             
+
+
+              {/* Videos */}
               <div>
-                <label className="block font-semibold mb-2">Course Image</label>
+                <label className="block font-semibold mb-2">Videos</label>
                 <input
                   type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImage(e.target.files[0])}
+                  onChange={(e) => uploadVideos(e.target.files[0])}
                   className="w-full border border-gray-300 rounded-lg p-2"
                 />
+                <p className="text-sm text-gray-500 mt-2">
+                  Uploaded Videos: {videos.length}
+                </p>
               </div>
 
               {/* Notes */}
@@ -446,7 +478,25 @@ const Course = () => {
               </div>
 
               <div>
-                <h3 className="font-semibold">Video Lectures:</h3>
+                <h3 className="font-semibold">Uploaded Videos:</h3>
+                <ul className="list-disc pl-6">
+                  {selectedCourse.videos.map((note, index) => (
+                    <li key={index}>
+                      <a
+                        href={note}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        {note}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold">Youtube Lectures:</h3>
                 <ul className="list-disc pl-6">
                   {selectedCourse.videoLectures.map((lecture, index) => (
                     <li key={index}>

@@ -15,7 +15,7 @@ const EnrolledCourse = () => {
 
   const getSingleUser = async () => {
     try {
-      const { data } = await axios.post("http://localhost:8000/user/get-user", {
+      const { data } = await axios.post("https://aistudiumb.onrender.com/user/get-user", {
         id: userId,
       });
       setCourses(data?.user?.enrolledCourses);
@@ -26,7 +26,7 @@ const EnrolledCourse = () => {
 
   const handleRemoveEnrollment = async (courseId) => {
     try {
-      await axios.post("http://localhost:8000/user/removeEnroll", {
+      await axios.post("https://aistudiumb.onrender.com/user/removeEnroll", {
         userId,
         courseId,
       });
