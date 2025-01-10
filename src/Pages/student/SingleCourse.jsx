@@ -82,7 +82,7 @@ const SingleCourse = () => {
                 <iframe
                   className="w-full rounded-lg"
                   height="300"
-                  src={video.replace("watch?v=", "embed/")}
+                  src={video.replace("http", "https")}
                   title={`Video ${index + 1}`}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
