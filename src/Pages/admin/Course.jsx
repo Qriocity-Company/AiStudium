@@ -25,7 +25,7 @@ const Course = () => {
   const getDomains = async () => {
     try {
       const domainData = await axios.get(
-        "http://localhost:8000/domains/all"
+        "https://aistudiumb.onrender.com/domains/all"
       );
       console.log("Domains fetched:", domainData.data);
       setDomainData(domainData.data);
