@@ -24,7 +24,7 @@ const [domainData, setDomainData] = useState({});
     try {
       const domainData = await axios.post(
         "https://aistudiumb.onrender.com/domains/search",
-        { domainName: "p" }
+        { domainName: "s" }
       );
       console.log("Domains fetched:", domainData.data);
       setDomainData(domainData.data);

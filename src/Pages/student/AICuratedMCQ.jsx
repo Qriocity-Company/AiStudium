@@ -222,7 +222,7 @@ const AICuratedMCQ = () => {
   const postQuizResult = async (resultsData) => {
     try {
       // Make a POST request to the backend
-      const response = await axios.post("http://localhost:8000/api/results/save", resultsData);
+      const response = await axios.post("https://aistudiumb.onrender.com/api/results/save", resultsData);
       
       // Handle success
       toast.success("Result saved successfully:");
