@@ -246,7 +246,7 @@ const [openUnits, setOpenUnits] = useState({});
                 </h3>
                 {openResources[index] && (
                   <ul className="list-disc list-inside space-y-2 text-gray-700">
-                    {unit.resources.map((resource, idx) => (
+                    {unit.resources?.map((resource, idx) => (
                       <li key={idx}>
                         <a
                           href={`https://www.google.com/search?q=${encodeURIComponent(
