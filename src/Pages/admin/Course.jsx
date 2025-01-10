@@ -106,7 +106,7 @@ const Course = () => {
 
     try {
       const response = await axios.post(
-        "https://api.cloudinary.com/v1_1/dcigsqglj/video/upload", // Replace with your Cloudinary endpoint
+        "https://api.cloudinary.com/v1_1/dcigsqglj/auto/upload", // Replace with your Cloudinary endpoint
         formData
       );
       setVideos([...videos, response.data.url]);
